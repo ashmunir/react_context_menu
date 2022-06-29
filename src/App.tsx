@@ -1,36 +1,66 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import { ContextMenu, MenuItem, ContextMenuTrigger } from "react-contextmenu";
- 
-// function handleClick(e, data) {
-//   console.log(data.foo);
-// }
- 
-function MyApp() {
-  return (
-    <div>
-      {/* NOTICE: id must be unique between EVERY <ContextMenuTrigger> and <ContextMenu> pair */}
-      {/* NOTICE: inside the pair, <ContextMenuTrigger> and <ContextMenu> must have the same id */}
- 
-      <ContextMenuTrigger id="same_unique_identifier">
-        <div className="well">Right click to see the menu</div>
-      </ContextMenuTrigger>
- 
-      <ContextMenu id="same_unique_identifier">
-        <MenuItem data={{foo: 'bar'}} onClick={handleClick}>
-          ContextMenu Item 1
-        </MenuItem>
-        <MenuItem data={{foo: 'bar'}} onClick={handleClick}>
-          ContextMenu Item 2
-        </MenuItem>
-        <MenuItem divider />
-        <MenuItem data={{foo: 'bar'}} onClick={handleClick}>
-          ContextMenu Item 3
-        </MenuItem>
-      </ContextMenu>
- 
-    </div>
-  );
+import React from 'react'
+import ReactDOM from 'react-dom'
+import Popup from './Popup'
+import {Table} from 'antd'
+import {columns, data } from './data'
+import 'antd/dist/antd.css'
+
+interface IProps {
+
 }
 
-export default App;
+interface IState{
+  popup:{
+    record:{},
+    visible: boolean,
+    x: number,
+    y:number
+  }
+}
+
+export default class App extends React.Component<IProps, IState> {
+  constructor(props:IProps) {
+    super(props)
+    this.state = {
+      popup: {
+        record:{},
+        visible: false, 
+        x: 0, y: 0
+      }
+    }
+  }
+  onRow = (record:{}) => ({
+    onContextMenu: (event:React.MouseEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      if (!this.state.popup.visible) {
+        const that = this
+        document.addEventListener(`click`, function onClickOutside() {
+          // that.setState({popup: { visible: false}})
+          // console.log('state', this.state)
+          document.removeEventListener(`click`, onClickOutside)
+        })
+      }
+      this.setState({
+        popup: {
+          record:record,
+          visible: true,
+          x: event.clientX,
+          y: event.clientY
+        }
+      })
+    }
+  })
+  
+  render() {
+    return (
+      <div>
+        <Table columns={columns} dataSource={data} onRow={this.onRow}/>
+        <Popup record={this.state.popup.record} visible={this.state.popup.visible} 
+        x={this.state.popup.x} y={this.state.popup.y} />
+      </div>
+    )
+    
+  }
+}
+
+          
